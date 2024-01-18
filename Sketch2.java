@@ -6,7 +6,8 @@ public class Sketch2 extends PApplet {
   int intPlayerY;
   int[] intEnemyX;
   int[] intEnemyY;
-  int intEnemyMaxCount = 10;
+  int intEnemyMaxCount;
+  boolean boolSpaceBar;
 	
   ArrayList<Float> fltProjectileX = new ArrayList<>();
   ArrayList<Float> fltProjectileY = new ArrayList<>();
@@ -27,6 +28,8 @@ public class Sketch2 extends PApplet {
     background(210, 255, 173);
     intPlayerX = width / 2;
     intPlayerY = height - 45;
+    intEnemyMaxCount = 10;
+    boolSpaceBar = false;
 
     intEnemyX = new int[intEnemyMaxCount];
     intEnemyY = new int[intEnemyMaxCount];
@@ -67,13 +70,56 @@ public class Sketch2 extends PApplet {
         noLoop();
       }
     }
+    
+    shootProjectile();
   }
-  
+
+  public void shootProjectile() {
+    for (int i = 0; i < fltProjectileX.size(); i++) {
+      moveProjectile(i);
+      displayProjectile(i);
+      checkCollision(i);
+    }
+  }
+  public void moveProjectile(int lst) {
+    float newX = fltProjectileX.get(lst);
+    float newY = fltProjectileY.get(lst) - 7;
+    fltProjectileX.set(lst, newX);
+    fltProjectileY.set(lst, newY);
+  }
+
+  public void displayProjectile(int lst) {
+    fill(0, 33, 23);
+    ellipse(fltProjectileX.get(lst), fltProjectileY.get(lst), 10, 10);
+  }
+
+  public void checkCollision(int lst) {
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      float d = dist(fltProjectileX.get(lst), fltProjectileY.get(lst), intEnemyX[i], intEnemyY[i]);
+      if (d < 10 / 2 + 20 / 2) {
+        fltProjectileX.remove(lst);
+        fltProjectileY.remove(lst);
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
+      }
+    }
+  }
+
   public void keyPressed() {
     if (keyCode == LEFT && intPlayerX > 0) {
       intPlayerX -= 10;
     } else if (keyCode == RIGHT && intPlayerX < width) {
       intPlayerX += 10;
+    } else if (keyCode == 32) {
+      boolSpaceBar = true;
+      fltProjectileX.add((float) intPlayerX);
+      fltProjectileY.add((float) intPlayerY);
+    }
+  }
+
+  public void keyReleased() {
+    if (keyCode == 32) {
+      boolSpaceBar = false;
     }
   }
 }
