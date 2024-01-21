@@ -1,3 +1,8 @@
+/**
+ * Author: @Ethan-Selvarajah2
+ * Description: A space invaders inspired game!
+ */
+
 // Imports
 import processing.core.PApplet;
 import processing.core.PImage;
@@ -7,6 +12,7 @@ public class Sketch2 extends PApplet {
   // Variable Declaration
   int intGameState;
   int intEnemiesDestroyed;
+  int intMaxLeaderboardDisplay;
 	int intPlayerX;
   int intPlayerY;
   int intPlayerSpeed;
@@ -38,6 +44,7 @@ public class Sketch2 extends PApplet {
   // Array Declaration
   ArrayList<Float> fltProjectileX = new ArrayList<>();
   ArrayList<Float> fltProjectileY = new ArrayList<>();
+  int[] intLeaderboardScores;
 
   /**
    * Called once at the beginning of execution, put your size all in this method
@@ -52,10 +59,9 @@ public class Sketch2 extends PApplet {
    * values here i.e background, stroke, fill etc.
    */
   public void setup() {
-    background(210, 255, 173);
-
     // Variable Initialization
     intGameState = 0;
+    intMaxLeaderboardDisplay = 5;
     intPlayerX = width / 2;
     intPlayerY = height - 45;
     intPlayerSpeed = 4;
@@ -75,6 +81,7 @@ public class Sketch2 extends PApplet {
     // Array Initialization
     intEnemyX = new int[intEnemyMaxCount];
     intEnemyY = new int[intEnemyMaxCount];
+    intLeaderboardScores = new int[intMaxLeaderboardDisplay];
 
     // Image Initialization
     imgAstralWarStart = loadImage("Astral War Start.jpg");
@@ -96,6 +103,11 @@ public class Sketch2 extends PApplet {
       intEnemyX[i] = (int) random(width);
       intEnemyY[i] = (int) random(-height, -20);
     }
+
+    // Leaderboard Initialize
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      intLeaderboardScores[i] = 0;
+    }
   }
 
   /**
@@ -111,6 +123,7 @@ public class Sketch2 extends PApplet {
       paused();
     } else if (intGameState == 3) {
       gameOver();
+      leaderboardDisplayer();
     } else if (intGameState == 4) {
       hardGameplay();
     } else if (intGameState == 5) {
@@ -154,12 +167,11 @@ public class Sketch2 extends PApplet {
 
     // Enemies Destroyed Score Displayed
     fill(255, 255, 255);
+    textSize(10);
     text("Score: " + intEnemiesDestroyed, 640, 30);
 
     // Player Image
     image(imgPlayerShip, intPlayerX - 35, intPlayerY - 30);
-
-    fill(0, 255, 0);
     
     // Movement
     if (boolLeftPressed  && intPlayerX > 0) {
@@ -207,18 +219,17 @@ public class Sketch2 extends PApplet {
 
     // Enemies Destroyed Score Displayed
     fill(255, 255, 255);
+    textSize(10);
     text("Score: " + intEnemiesDestroyed, 640, 30);
 
     // Player Image
     image(imgPlayerShip, intPlayerX - 35, intPlayerY - 30);
-
-    fill(0, 255, 0);
     
     // Movement
     if (boolLeftPressed  && intPlayerX > 0) {
-      intPlayerX -= intPlayerSpeed / 2;
+      intPlayerX -= (intPlayerSpeed - 1);
     } else if (boolRightPressed && intPlayerX < width) {
-      intPlayerX += intPlayerSpeed / 2;
+      intPlayerX += (intPlayerSpeed - 1);
     }
 
     // Speed Cheat Code
@@ -236,6 +247,7 @@ public class Sketch2 extends PApplet {
       if (intEnemyY[i] > height) {
         intEnemyX[i] = (int) random(width);
         intEnemyY[i] = (int) random(-height, -20);
+        intGameState = 3;
       }
     }
     
@@ -272,8 +284,11 @@ public class Sketch2 extends PApplet {
     fltProjectileX.clear();
     fltProjectileY.clear();
 
-    // Reset any other score counts
-    intEnemiesDestroyed = 0;
+    // Reset player speed
+    intPlayerSpeed = 4;
+
+    // Update leaderboard
+    leaderboardUpdater(intEnemiesDestroyed);
 
     // If enter pressed go to difficulty selection
     if (boolEnterPressed) {
@@ -281,15 +296,16 @@ public class Sketch2 extends PApplet {
       boolHardGameplay = false;
       boolEasyGameplay = false;
     }
+
+    // Reset enemies destroyed
+    intEnemiesDestroyed = 0;
   }
 
   /**
-   * 
    * Pause screen code
    */
   public void paused() {
     image(imgAstralWarPause, 0, 0);
-    text("PAUSED", 360, 360);
     
     if (boolEnterPressed && boolEasyGameplay) {
       intGameState = 1;
@@ -299,7 +315,37 @@ public class Sketch2 extends PApplet {
   }
 
   /**
-   * Contains the code for projectiles being shot
+   * Updates the score for the leaderboard
+   * @param intScore The score from the previous game
+   */
+  public void leaderboardUpdater(int intScore) {
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      if (intScore > intLeaderboardScores[i]) {
+        for (int j = intMaxLeaderboardDisplay - 1; j > i; j--) {
+          intLeaderboardScores[j] = intLeaderboardScores[j - 1];
+        }
+        intLeaderboardScores[i] = intScore;
+        break;
+      }
+    }
+  }
+
+  /**
+   * Displays the leaderboard
+   */
+  public void leaderboardDisplayer() {
+    fill(255);
+    textAlign(LEFT);
+    textSize(20);
+    text("Leaderboard: ", 10, 30);
+
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      text(i + 1 + ". " + intLeaderboardScores[i], 20, 60 + i * 30);
+    }
+  }
+
+  /**
+   * Compilation of projectile code
    */
   public void shootProjectile() {
     for (int i = 0; i < fltProjectileX.size(); i++) {
