@@ -138,7 +138,7 @@ public class Sketch extends PApplet {
     // Start Menu Background
     image(imgAstralWarStart, 0, 0);
 
-    // Continue to gameplay if enter clicked
+    // Continue to difficulty selection if enter clicked
     if (boolEnterPressed) {
       intGameState = 5;
     }
@@ -187,6 +187,12 @@ public class Sketch extends PApplet {
       intPlayerSpeed = 4;
     }
 
+    // Allows projectiles to be show
+    shootProjectile();
+
+    // Checks for collision with projectiles and player or player and enemy
+    checkCollision(CUSTOM);
+
     // Make enemy fly downwards
     for (int i = 0; i < intEnemyMaxCount; i++) {
       image(imgEnemyShip, intEnemyX[i] - 27, intEnemyY[i] - 27);
@@ -202,12 +208,6 @@ public class Sketch extends PApplet {
     if (boolTabPressed) {
       intGameState = 2;
     }
-
-    // Allows projectiles to be show
-    shootProjectile();
-
-    // Checks for collision with projectiles and player or player and enemy
-    checkCollision(CUSTOM);
   }
 
   /**
@@ -239,6 +239,12 @@ public class Sketch extends PApplet {
       intPlayerSpeed = 4;
     }
 
+    // Allows projectiles to be show
+    shootProjectile();
+
+    // Checks for collision with projectiles and player or player and enemy
+    checkCollision(CUSTOM);
+    
     // Make enemy fly downwards
     for (int i = 0; i < intEnemyMaxCount; i++) {
       image(imgEnemyShip, intEnemyX[i] - 27, intEnemyY[i] - 27);
@@ -255,12 +261,6 @@ public class Sketch extends PApplet {
     if (boolTabPressed) {
       intGameState = 2;
     }
-
-    // Allows projectiles to be show
-    shootProjectile();
-
-    // Checks for collision with projectiles and player or player and enemy
-    checkCollision(CUSTOM);
   }
 
   /**
