@@ -1,31 +1,57 @@
+/**
+ * Author: @Ethan-Selvarajah2
+ * Description: A space invaders inspired game!
+ */
+
+// Imports
 import processing.core.PApplet;
+import processing.core.PImage;
+import java.util.ArrayList;
 
 public class Sketch extends PApplet {
-	boolean boolUpPressed;
+  // Variable Declaration
+  int intGameState;
+  int intEnemiesDestroyed;
+  int intMaxLeaderboardDisplay;
+	int intPlayerX;
+  int intPlayerY;
+  int intPlayerSpeed;
+  int[] intEnemyX;
+  int[] intEnemyY;
+  int intEnemyMaxCount;
+  boolean boolSpaceBar;
+  boolean boolEnterPressed;
   boolean boolLeftPressed;
-  boolean boolDownPressed;
   boolean boolRightPressed;
-  boolean boolXPressed;
-	float fltPlayerX;
-  float fltPlayerY;
-  float fltMouseX;
-  float fltMouseY;
-  float fltPlayerSpeed;
-  int intProjectileMax;
-  float fltProjectileX[];
-  float fltProjectileY[];
-  boolean boolProjectileInMotion;
-  boolean boolProjectileHide[];
-  float fltProjectileSpeed;
-  int intCurrentState;
-  String strLeadingEdge;
+  boolean boolTabPressed;
+  boolean boolSPressed;
+  boolean boolDPressed;
+  boolean boolHPressed;
+  boolean boolEPressed;
+  boolean boolEasyGameplay;
+  boolean boolHardGameplay;
+
+  // Image Declaration
+  PImage imgAstralWarStart;
+  PImage imgAstralWarGameOver;
+  PImage imgAstralWarDifficulty;
+  PImage imgAstralWarPause;
+  PImage imgAstralWarGameplayBG;
+  PImage imgPlayerShip;
+  PImage imgEnemyShip;
+  PImage imgProjectile;
   
+  // Array Declaration
+  ArrayList<Float> fltProjectileX = new ArrayList<>();
+  ArrayList<Float> fltProjectileY = new ArrayList<>();
+  int[] intLeaderboardScores;
+
   /**
-   * Called once at the beginning of execution, put your size call in this method
+   * Called once at the beginning of execution, put your size all in this method
    */
   public void settings() {
-	// Size call
-    size(1280, 720);
+	// Size Call
+    size(720, 720);
   }
 
   /** 
@@ -33,223 +59,404 @@ public class Sketch extends PApplet {
    * values here i.e background, stroke, fill etc.
    */
   public void setup() {
-    background(210, 255, 173);
-    boolUpPressed = false;
+    // Variable Initialization
+    intGameState = 0;
+    intMaxLeaderboardDisplay = 5;
+    intPlayerX = width / 2;
+    intPlayerY = height - 45;
+    intPlayerSpeed = 4;
+    intEnemyMaxCount = 10;
+    boolSpaceBar = false;
+    boolEnterPressed = false;
     boolLeftPressed = false;
-    boolDownPressed = false;
     boolRightPressed = false;
-    boolXPressed = false;
-    fltPlayerX = 640;
-    fltPlayerY = 360;
-    fltPlayerSpeed = 2;
-    intProjectileMax = 30;
-    fltProjectileX = new float[intProjectileMax];
-    fltProjectileY = new float[intProjectileMax];
-    boolProjectileInMotion = false;
-    boolProjectileHide = new boolean[intProjectileMax];
-    fltProjectileSpeed = 2;
-    intCurrentState = 0;
+    boolTabPressed = false;
+    boolSPressed = false;
+    boolDPressed = false;
+    boolEPressed = false;
+    boolHPressed = false;
+    boolEasyGameplay = false;
+    boolHardGameplay = false;
+
+    // Array Initialization
+    intEnemyX = new int[intEnemyMaxCount];
+    intEnemyY = new int[intEnemyMaxCount];
+    intLeaderboardScores = new int[intMaxLeaderboardDisplay];
+
+    // Image Initialization
+    imgAstralWarStart = loadImage("Astral War Start.jpg");
+    imgAstralWarGameOver = loadImage("Astral War Game Over.jpg");
+    imgPlayerShip = loadImage("blue spaceship sprite transparent.png");
+    imgAstralWarGameplayBG = loadImage("Astral War Gameplay Background (nm).png");
+    imgEnemyShip = loadImage("red spaceship sprite transparent.png");
+    imgProjectile = loadImage("one fireball sprite transparent.png");
+    imgAstralWarDifficulty = loadImage("Astral War Difficulty Selection.jpg");
+    imgAstralWarPause = loadImage("Astral War Pause Screen.jpg");
+
+    // Image Resize
+    imgPlayerShip.resize(imgPlayerShip.width / 7, imgPlayerShip.height / 7);
+    imgEnemyShip.resize(imgEnemyShip.width / 9, imgEnemyShip.height / 9);
+    imgProjectile.resize(imgProjectile.width / 9, imgProjectile.height / 9);
+
+    // Set initial enemy positions
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      intEnemyX[i] = (int) random(width);
+      intEnemyY[i] = (int) random(-height, -20);
+    }
+
+    // Leaderboard Initialize
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      intLeaderboardScores[i] = 0;
+    }
   }
 
   /**
    * Called repeatedly, anything drawn to the screen goes here
    */
   public void draw() {
-    if (intCurrentState == 0) {
+    // Code that allows a switch between each section
+    if (intGameState == 0) {
       startMenu();
-    } else if (intCurrentState == 1) {
+    } else if (intGameState == 1) {
       gameplay();
-    } else if (intCurrentState == 2) {
-      gameplay();
-    } else if (intCurrentState == 3) {
+    } else if (intGameState == 2) {
+      paused();
+    } else if (intGameState == 3) {
       gameOver();
-    } else if (intCurrentState == 4) {
-      optionsMenu();
+      leaderboardDisplayer();
+    } else if (intGameState == 4) {
+      hardGameplay();
+    } else if (intGameState == 5) {
+      chooseDifficulty();
     }
   }
 
+  /**
+   * Start menu is displayed and allows for continuation into difficulty selection screen
+   */
   public void startMenu() {
-    background(0, 0, 0);
-    textAlign(CENTER);
-    textSize(100);
-    text("TITLE OF MY GAME", 640, 360);
-    textSize(25);
-    text("PRESS START TO BEGIN", 640, 400);
+    // Start Menu Background
+    image(imgAstralWarStart, 0, 0);
 
-    if (mousePressed && mouseX > 501 && mouseX < 778 && mouseY < 402 && mouseY > 381) {
-      intCurrentState = 1;
+    // Continue to gameplay if enter clicked
+    if (boolEnterPressed) {
+      intGameState = 5;
     }
   }
 
-  public void cinematicOne() {
-    background(0, 0, 0);
-    textAlign(CENTER);
-    text("storyline intro", 640, 360);
-    background(0, 0, 0);
+  /**
+   * Difficulty selection screen is displayed and allows for continuation into gameplay
+   */
+  public void chooseDifficulty() {
+    image(imgAstralWarDifficulty, 0, 0);
+    if (boolHPressed) {
+      intGameState = 4;
+      boolHardGameplay = true;
+    } else if (boolEPressed) {
+      intGameState = 1;
+      boolEasyGameplay = true;
+    }
   }
 
+  /**
+   * Gameplay mechanics are held within
+   */
   public void gameplay() {
-    background(210, 255, 173);
+    // Gameplay Background
+    image(imgAstralWarGameplayBG, 0, 0);
+
+    // Enemies Destroyed Score Displayed
+    fill(255, 255, 255);
+    textSize(10);
+    text("Score: " + intEnemiesDestroyed, 640, 30);
+
+    // Player Image
+    image(imgPlayerShip, intPlayerX - 35, intPlayerY - 30);
     
-    // Options menu open button
-    stroke(255, 255, 255);
-    strokeWeight(3);
-    line(1240, 20, 1260, 20);
-    line(1240, 27, 1260, 27);
-    line(1240, 34, 1260, 34);
-
-    // Player
-	  ellipse(fltPlayerX, fltPlayerY, 100, 100);
-
-    // Vertical and horizontal movement
-    if (boolUpPressed) {
-      fltPlayerY -= fltPlayerSpeed;
-      strLeadingEdge = "UP";
-    } else if (boolLeftPressed) {
-      fltPlayerX -= fltPlayerSpeed;
-      strLeadingEdge = "LEFT";
-    } else if (boolDownPressed) {
-      fltPlayerY += fltPlayerSpeed;
-      strLeadingEdge = "DOWN";
-    } else if (boolRightPressed) {
-      fltPlayerX += fltPlayerSpeed;
-      strLeadingEdge = "RIGHT";
+    // Movement
+    if (boolLeftPressed  && intPlayerX > 0) {
+      intPlayerX -= intPlayerSpeed;
+    } else if (boolRightPressed && intPlayerX < width) {
+      intPlayerX += intPlayerSpeed;
     }
 
-    // Diagonal movement
-    if (boolUpPressed && boolLeftPressed) {
-      fltPlayerY -= fltPlayerSpeed;
-      fltPlayerX -= fltPlayerSpeed;
-      strLeadingEdge = "UP-LEFT";
-    } else if (boolUpPressed && boolRightPressed) {
-      fltPlayerY -= fltPlayerSpeed;
-      fltPlayerX += fltPlayerSpeed;
-      strLeadingEdge = "UP-RIGHT";
-    } else if (boolDownPressed && boolLeftPressed) {
-      fltPlayerY += fltPlayerSpeed;
-      fltPlayerX -= fltPlayerSpeed;
-      strLeadingEdge = "DOWN-LEFT";
-    } else if (boolDownPressed && boolRightPressed) {
-      fltPlayerY += fltPlayerSpeed;
-      fltPlayerX += fltPlayerSpeed;
-      strLeadingEdge = "DOWN-RIGHT";
+    // Speed Cheat Code
+    if (boolSPressed && intPlayerSpeed != 10) {
+      intPlayerSpeed = 10;
+    } else if (boolDPressed && intPlayerSpeed == 10) {
+      intPlayerSpeed = 4;
     }
 
-    // Shoot projectile in direction faced
-    if (strLeadingEdge == "UP" && boolXPressed) {
-      for (int n = 0; n < intProjectileMax; n++) {
-      fltProjectileX[n] = fltPlayerX;
-      fltProjectileY[n] = fltPlayerY;
-      boolProjectileHide[n] = false;
-    }
-    boolProjectileInMotion = true;
-  }
-  for (int i = 0; i < intProjectileMax; i++) {
-    if (!boolProjectileHide[i]) {
-      fill(255, 255, 255);
-      ellipse(fltProjectileX[i], fltProjectileY[i], 40, 40);
-      fltProjectileY[i] -= fltProjectileSpeed;
+    // Make enemy fly downwards
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      image(imgEnemyShip, intEnemyX[i] - 27, intEnemyY[i] - 27);
+      intEnemyY[i] += 2;
       
-      if (fltProjectileY[i] > height) {
-        boolProjectileHide[i] = true;
-        boolProjectileInMotion = false;
+      if (intEnemyY[i] > height) {
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
       }
     }
-  }/*
-    } else if (strLeadingEdge == "LEFT" && boolXPressed) {
-      
-    } else if (strLeadingEdge == "DOWN" && boolXPressed) {
-      
-    } else if (strLeadingEdge == "RIGHT" && boolXPressed) {
-      
-    } else if (strLeadingEdge == "UP-LEFT" && boolXPressed) {
-      
-    } else if (strLeadingEdge == "UP-RIGHT" && boolXPressed) {
-      
-    } else if (strLeadingEdge == "DOWN-LEFT" && boolXPressed) {
-      
-    } else if (strLeadingEdge == "DOWN-RIGHT" && boolXPressed) {
-      
-    }*/
-
-    // Melee attack in direction faced
-    // code here
-
-    // Special move -- have a bar that charges up by hitting the enemies
-    // if collision with enemy bar and bar is not full += 1, else if c clicked bar = 0 and special move used
-
-    // Player health bar
-    // if enemy attack colllides with player and player health is greater than 0 then health bar -= 1, else if player health = 0
-    // die
-
-    // Switch to options menu
-    if (mousePressed && mouseX > 1239 && mouseX < 1261 && mouseY > 19 && mouseY < 35) {
-      intCurrentState = 3;
+    
+    // Pause
+    if (boolTabPressed) {
+      intGameState = 2;
     }
-  }
 
-  public void gameOver() {
-    background(255, 255, 255);
-  }
+    // Allows projectiles to be show
+    shootProjectile();
 
-  public void optionsMenu() {
-    background(39, 40, 48);
-    textAlign(CENTER);
-    textSize(25);
-    text("SETTINGS", 640, 30);
-    textSize(20);
-    // any settings here
-    // have a slider below, idk how it will work but yeah
-
-    // Options menu close button
-    stroke(255, 255, 255);
-    strokeWeight(3);
-    line(1240, 20, 1260, 20);
-    line(1240, 27, 1260, 27);
-    line(1240, 34, 1260, 34);
-
-    // Switch to gameplay, fix this becuz it glitches due to being mouse pressed
-    /*
-    fix the glitch that happens due to mouse pressed
-    if (mousePressed && mouseX > 1239 && mouseX < 1261 && mouseY > 19 && mouseY < 35) {
-      intCurrentState = 1;
-    }
-    */
+    // Checks for collision with projectiles and player or player and enemy
+    checkCollision(CUSTOM);
   }
 
   /**
-   * Checks if any keys are pressed
-   * Changes the boolean flag to true based on the keyCode pressed
+   * A harder version of gameplay mechanics are held within
+   */
+  public void hardGameplay() {
+    // Gameplay Background
+    image(imgAstralWarGameplayBG, 0, 0);
+
+    // Enemies Destroyed Score Displayed
+    fill(255, 255, 255);
+    textSize(10);
+    text("Score: " + intEnemiesDestroyed, 640, 30);
+
+    // Player Image
+    image(imgPlayerShip, intPlayerX - 35, intPlayerY - 30);
+    
+    // Movement
+    if (boolLeftPressed  && intPlayerX > 0) {
+      intPlayerX -= (intPlayerSpeed - 1);
+    } else if (boolRightPressed && intPlayerX < width) {
+      intPlayerX += (intPlayerSpeed - 1);
+    }
+
+    // Speed Cheat Code
+    if (boolSPressed && intPlayerSpeed != 10) {
+      intPlayerSpeed = 10;
+    } else if (boolDPressed && intPlayerSpeed == 10) {
+      intPlayerSpeed = 4;
+    }
+
+    // Make enemy fly downwards
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      image(imgEnemyShip, intEnemyX[i] - 27, intEnemyY[i] - 27);
+      intEnemyY[i] += 3;
+      
+      if (intEnemyY[i] > height) {
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
+        intGameState = 3;
+      }
+    }
+    
+    // Pause
+    if (boolTabPressed) {
+      intGameState = 2;
+    }
+
+    // Allows projectiles to be show
+    shootProjectile();
+
+    // Checks for collision with projectiles and player or player and enemy
+    checkCollision(CUSTOM);
+  }
+
+  /**
+   * Game over screen code
+   */
+  public void gameOver() {
+    // Background for game over screen
+    image(imgAstralWarGameOver, 0, 0);
+    
+    // Reset player position
+    intPlayerX = width / 2;
+    intPlayerY = height - 45;
+
+    // Reset enemy positions
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      intEnemyX[i] = (int) random(width);
+      intEnemyY[i] = (int) random(-height, -20);
+    }
+
+    // Reset any projectiles
+    fltProjectileX.clear();
+    fltProjectileY.clear();
+
+    // Reset player speed
+    intPlayerSpeed = 4;
+
+    // Update leaderboard
+    leaderboardUpdater(intEnemiesDestroyed);
+
+    // If enter pressed go to difficulty selection
+    if (boolEnterPressed) {
+      intGameState = 5;
+      boolHardGameplay = false;
+      boolEasyGameplay = false;
+    }
+
+    // Reset enemies destroyed
+    intEnemiesDestroyed = 0;
+  }
+
+  /**
+   * Pause screen code
+   */
+  public void paused() {
+    image(imgAstralWarPause, 0, 0);
+    
+    if (boolEnterPressed && boolEasyGameplay) {
+      intGameState = 1;
+    } else if (boolEnterPressed && boolHardGameplay) {
+      intGameState = 4;
+    }
+  }
+
+  /**
+   * Updates the score for the leaderboard
+   * @param intScore The score from the previous game
+   */
+  public void leaderboardUpdater(int intScore) {
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      if (intScore > intLeaderboardScores[i]) {
+        for (int j = intMaxLeaderboardDisplay - 1; j > i; j--) {
+          intLeaderboardScores[j] = intLeaderboardScores[j - 1];
+        }
+        intLeaderboardScores[i] = intScore;
+        break;
+      }
+    }
+  }
+
+  /**
+   * Displays the leaderboard
+   */
+  public void leaderboardDisplayer() {
+    fill(255);
+    textAlign(LEFT);
+    textSize(20);
+    text("Leaderboard: ", 10, 30);
+
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      text(i + 1 + ". " + intLeaderboardScores[i], 20, 60 + i * 30);
+    }
+  }
+
+  /**
+   * Compilation of projectile code
+   */
+  public void shootProjectile() {
+    for (int i = 0; i < fltProjectileX.size(); i++) {
+      moveProjectile(i);
+      displayProjectile(i);
+      checkCollision(i);
+    }
+  }
+
+  /**
+   * Contains the code for projectile movement
+   * @param lst The index of the specific projectile
+   */
+  public void moveProjectile(int lst) {
+    float newX = fltProjectileX.get(lst);
+    float newY = fltProjectileY.get(lst) - 7;
+    fltProjectileX.set(lst, newX);
+    fltProjectileY.set(lst, newY);
+  }
+
+  /**
+   * The code for displaying the projectile
+   * @param lst The index of the specific projectile
+   */
+  public void displayProjectile(int lst) {
+    image(imgProjectile, fltProjectileX.get(lst) - 15, fltProjectileY.get(lst) - 10);
+  }
+
+  /**
+   * Checks for collision between player and enemy or enemy and projectile
+   * @param lst The index of the specific projectile
+   */
+  public void checkCollision(int lst) {
+    // Collision between player and enemy
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      if (dist(intPlayerX, intPlayerY, intEnemyX[i], intEnemyY[i]) < 20 / 2 + 20 / 2) {
+        for (int j = i; j < intEnemyMaxCount - 1; j++) {
+          intEnemyX[j] = intEnemyX[j + 1];
+          intEnemyY[j] = intEnemyY[j + 1];
+        }
+        intEnemyX[intEnemyMaxCount - 1] = (int) random(width);
+        intEnemyY[intEnemyMaxCount - 1] = (int) random(-height, -20);
+        intGameState = 3;
+      }
+    }
+
+    // Collision between enemy and projectile
+  try {
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      float d = dist(fltProjectileX.get(lst), fltProjectileY.get(lst), intEnemyX[i], intEnemyY[i]);
+      if (d < 10 / 2 + 20 / 2) {
+        fltProjectileX.remove(lst);
+        fltProjectileY.remove(lst);
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
+        intEnemiesDestroyed += 1;
+      }
+    }} catch (Exception e){
+
+    }
+  }
+
+  /**
+   * Checks if various keys are pressed
    */
   public void keyPressed() {
-    if (keyCode == UP) {
-      boolUpPressed = true;
-    } else if (keyCode == LEFT) {
+    if (keyCode == LEFT) {
       boolLeftPressed = true;
-    } else if (keyCode == DOWN) {
-      boolDownPressed = true;
     } else if (keyCode == RIGHT) {
       boolRightPressed = true;
-    } else if (keyCode == 88) {
-      boolXPressed = true;
+    } else if (keyCode == 32) {
+      boolSpaceBar = true;
+      fltProjectileX.add((float) intPlayerX);
+      fltProjectileY.add((float) intPlayerY);
+    } else if (keyCode == 10) {
+      boolEnterPressed = true;
+    } else if (keyCode == 9) {
+      boolTabPressed = true;
+    } else if (keyCode == 'S') {
+      boolSPressed = true;
+    } else if (keyCode == 'D') {
+      boolDPressed = true;
+    } else if (keyCode == 'E') {
+      boolEPressed = true;
+    } else if (keyCode == 'H') {
+      boolHPressed = true;
     }
   }
 
   /**
-   * Checks if any keys are released
-   * Changes the boolean flag to false based on the keyCode pressed
+   * Checks if various keys are released
    */
   public void keyReleased() {
-    if (keyCode == UP) {
-      boolUpPressed = false;
-    } else if (keyCode == LEFT) {
-      boolLeftPressed = false;
-    } else if (keyCode == DOWN) {
-      boolDownPressed = false;
+    if (keyCode == 32) {
+      boolSpaceBar = false;
+    } else if (keyCode == 10) {
+      boolEnterPressed = false;
     } else if (keyCode == RIGHT) {
       boolRightPressed = false;
-    } else if (keyCode == 88) {
-      boolXPressed = false;
+    } else if (keyCode == LEFT) {
+      boolLeftPressed = false;
+    } else if (keyCode == 9) {
+      boolTabPressed = false;
+    } else if (keyCode == 'S') {
+      boolSPressed = false;
+    } else if (keyCode == 'D') {
+      boolDPressed = false;
+    } else if (keyCode == 'E') {
+      boolEPressed = false;
+    } else if (keyCode == 'H') {
+      boolHPressed = false;
     }
   }
 }
