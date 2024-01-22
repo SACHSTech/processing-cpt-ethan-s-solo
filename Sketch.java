@@ -19,7 +19,7 @@ public class Sketch extends PApplet {
   int[] intEnemyX;
   int[] intEnemyY;
   int intEnemyMaxCount;
-  boolean boolSpaceBar;
+  boolean boolSpaceBarPressed;
   boolean boolEnterPressed;
   boolean boolLeftPressed;
   boolean boolRightPressed;
@@ -66,7 +66,7 @@ public class Sketch extends PApplet {
     intPlayerY = height - 45;
     intPlayerSpeed = 4;
     intEnemyMaxCount = 10;
-    boolSpaceBar = false;
+    boolSpaceBarPressed = false;
     boolEnterPressed = false;
     boolLeftPressed = false;
     boolRightPressed = false;
@@ -417,7 +417,7 @@ public class Sketch extends PApplet {
     } else if (keyCode == RIGHT) {
       boolRightPressed = true;
     } else if (keyCode == 32) {
-      boolSpaceBar = true;
+      boolSpaceBarPressed = true;
       fltProjectileX.add((float) intPlayerX);
       fltProjectileY.add((float) intPlayerY);
     } else if (keyCode == 10) {
@@ -440,7 +440,7 @@ public class Sketch extends PApplet {
    */
   public void keyReleased() {
     if (keyCode == 32) {
-      boolSpaceBar = false;
+      boolSpaceBarPressed = false;
     } else if (keyCode == 10) {
       boolEnterPressed = false;
     } else if (keyCode == RIGHT) {
