@@ -27,6 +27,8 @@ S: Activate Speed Cheat Code
 <br>
 D: Disable Speed Cheat Code
 <br>
+Tab: Pause
+<br>
 <br>
 **Scoring:**
 <br>
