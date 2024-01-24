@@ -1,14 +1,57 @@
+/**
+ * Author: @Ethan-Selvarajah2
+ * Description: A space invaders inspired game!
+ */
+
+// Imports
 import processing.core.PApplet;
+import processing.core.PImage;
+import java.util.ArrayList;
 
 public class Sketch extends PApplet {
-	
-	
+  // Variable Declaration
+  int intGameState;
+  int intEnemiesDestroyed;
+  int intMaxLeaderboardDisplay;
+	int intPlayerX;
+  int intPlayerY;
+  int intPlayerSpeed;
+  int[] intEnemyX;
+  int[] intEnemyY;
+  int intEnemyMaxCount;
+  boolean boolSpaceBarPressed;
+  boolean boolEnterPressed;
+  boolean boolLeftPressed;
+  boolean boolRightPressed;
+  boolean boolTabPressed;
+  boolean boolSPressed;
+  boolean boolDPressed;
+  boolean boolHPressed;
+  boolean boolEPressed;
+  boolean boolEasyGameplay;
+  boolean boolHardGameplay;
+
+  // Image Declaration
+  PImage imgAstralWarStart;
+  PImage imgAstralWarGameOver;
+  PImage imgAstralWarDifficulty;
+  PImage imgAstralWarPause;
+  PImage imgAstralWarGameplayBG;
+  PImage imgPlayerShip;
+  PImage imgEnemyShip;
+  PImage imgProjectile;
+  
+  // Array Declaration
+  ArrayList<Float> fltProjectileX = new ArrayList<>();
+  ArrayList<Float> fltProjectileY = new ArrayList<>();
+  int[] intLeaderboardScores;
+
   /**
    * Called once at the beginning of execution, put your size all in this method
    */
   public void settings() {
-	// put your size call here
-    size(400, 400);
+	// Size Call
+    size(720, 720);
   }
 
   /** 
@@ -16,21 +59,404 @@ public class Sketch extends PApplet {
    * values here i.e background, stroke, fill etc.
    */
   public void setup() {
-    background(210, 255, 173);
+    // Variable Initialization
+    intGameState = 0;
+    intMaxLeaderboardDisplay = 5;
+    intPlayerX = width / 2;
+    intPlayerY = height - 45;
+    intPlayerSpeed = 4;
+    intEnemyMaxCount = 10;
+    boolSpaceBarPressed = false;
+    boolEnterPressed = false;
+    boolLeftPressed = false;
+    boolRightPressed = false;
+    boolTabPressed = false;
+    boolSPressed = false;
+    boolDPressed = false;
+    boolEPressed = false;
+    boolHPressed = false;
+    boolEasyGameplay = false;
+    boolHardGameplay = false;
+
+    // Array Initialization
+    intEnemyX = new int[intEnemyMaxCount];
+    intEnemyY = new int[intEnemyMaxCount];
+    intLeaderboardScores = new int[intMaxLeaderboardDisplay];
+
+    // Image Initialization
+    imgAstralWarStart = loadImage("Astral War Start.jpg");
+    imgAstralWarGameOver = loadImage("Astral War Game Over.jpg");
+    imgPlayerShip = loadImage("blue spaceship sprite transparent.png");
+    imgAstralWarGameplayBG = loadImage("Astral War Gameplay Background (nm).png");
+    imgEnemyShip = loadImage("red spaceship sprite transparent.png");
+    imgProjectile = loadImage("one fireball sprite transparent.png");
+    imgAstralWarDifficulty = loadImage("Astral War Difficulty Selection.jpg");
+    imgAstralWarPause = loadImage("Astral War Pause Screen.jpg");
+
+    // Image Resize
+    imgPlayerShip.resize(imgPlayerShip.width / 7, imgPlayerShip.height / 7);
+    imgEnemyShip.resize(imgEnemyShip.width / 9, imgEnemyShip.height / 9);
+    imgProjectile.resize(imgProjectile.width / 9, imgProjectile.height / 9);
+
+    // Set initial enemy positions
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      intEnemyX[i] = (int) random(width);
+      intEnemyY[i] = (int) random(-height, -20);
+    }
+
+    // Leaderboard Initialize
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      intLeaderboardScores[i] = 0;
+    }
   }
 
   /**
    * Called repeatedly, anything drawn to the screen goes here
    */
   public void draw() {
-	  
-	// sample code, delete this stuff
-    stroke(128);
-    line(150, 25, 270, 350);  
-
-    stroke(255);
-    line(50, 125, 70, 50);  
+    // Code that allows a switch between each section
+    if (intGameState == 0) {
+      startMenu();
+    } else if (intGameState == 1) {
+      gameplay();
+    } else if (intGameState == 2) {
+      paused();
+    } else if (intGameState == 3) {
+      gameOver();
+      leaderboardDisplayer();
+    } else if (intGameState == 4) {
+      hardGameplay();
+    } else if (intGameState == 5) {
+      chooseDifficulty();
+    }
   }
-  
-  // define other methods down here.
+
+  /**
+   * Start menu is displayed and allows for continuation into difficulty selection screen
+   */
+  public void startMenu() {
+    // Start Menu Background
+    image(imgAstralWarStart, 0, 0);
+
+    // Continue to difficulty selection if enter clicked
+    if (boolEnterPressed) {
+      intGameState = 5;
+    }
+  }
+
+  /**
+   * Difficulty selection screen is displayed and allows for continuation into gameplay
+   */
+  public void chooseDifficulty() {
+    image(imgAstralWarDifficulty, 0, 0);
+    if (boolHPressed) {
+      intGameState = 4;
+      boolHardGameplay = true;
+    } else if (boolEPressed) {
+      intGameState = 1;
+      boolEasyGameplay = true;
+    }
+  }
+
+  /**
+   * Gameplay mechanics are held within
+   */
+  public void gameplay() {
+    // Gameplay Background
+    image(imgAstralWarGameplayBG, 0, 0);
+
+    // Enemies Destroyed Score Displayed
+    fill(255, 255, 255);
+    textSize(10);
+    text("Score: " + intEnemiesDestroyed, 640, 30);
+
+    // Player Image
+    image(imgPlayerShip, intPlayerX - 35, intPlayerY - 30);
+    
+    // Movement
+    if (boolLeftPressed  && intPlayerX > 0) {
+      intPlayerX -= intPlayerSpeed;
+    } else if (boolRightPressed && intPlayerX < width) {
+      intPlayerX += intPlayerSpeed;
+    }
+
+    // Speed Cheat Code
+    if (boolSPressed && intPlayerSpeed != 10) {
+      intPlayerSpeed = 10;
+    } else if (boolDPressed && intPlayerSpeed == 10) {
+      intPlayerSpeed = 4;
+    }
+
+    // Allows projectiles to be show
+    shootProjectile();
+
+    // Checks for collision with projectiles and player or player and enemy
+    checkCollision(CUSTOM);
+
+    // Make enemy fly downwards
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      image(imgEnemyShip, intEnemyX[i] - 27, intEnemyY[i] - 27);
+      intEnemyY[i] += 2;
+      
+      if (intEnemyY[i] > height) {
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
+      }
+    }
+    
+    // Pause
+    if (boolTabPressed) {
+      intGameState = 2;
+    }
+  }
+
+  /**
+   * A harder version of gameplay mechanics are held within
+   */
+  public void hardGameplay() {
+    // Gameplay Background
+    image(imgAstralWarGameplayBG, 0, 0);
+
+    // Enemies Destroyed Score Displayed
+    fill(255, 255, 255);
+    textSize(10);
+    text("Score: " + intEnemiesDestroyed, 640, 30);
+
+    // Player Image
+    image(imgPlayerShip, intPlayerX - 35, intPlayerY - 30);
+    
+    // Movement
+    if (boolLeftPressed  && intPlayerX > 0) {
+      intPlayerX -= (intPlayerSpeed - 1);
+    } else if (boolRightPressed && intPlayerX < width) {
+      intPlayerX += (intPlayerSpeed - 1);
+    }
+
+    // Speed Cheat Code
+    if (boolSPressed && intPlayerSpeed != 10) {
+      intPlayerSpeed = 10;
+    } else if (boolDPressed && intPlayerSpeed == 10) {
+      intPlayerSpeed = 4;
+    }
+
+    // Allows projectiles to be show
+    shootProjectile();
+
+    // Checks for collision with projectiles and player or player and enemy
+    checkCollision(CUSTOM);
+    
+    // Make enemy fly downwards
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      image(imgEnemyShip, intEnemyX[i] - 27, intEnemyY[i] - 27);
+      intEnemyY[i] += 3;
+      
+      if (intEnemyY[i] > height) {
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
+        intGameState = 3;
+      }
+    }
+    
+    // Pause
+    if (boolTabPressed) {
+      intGameState = 2;
+    }
+  }
+
+  /**
+   * Game over screen code
+   */
+  public void gameOver() {
+    // Background for game over screen
+    image(imgAstralWarGameOver, 0, 0);
+    
+    // Reset player position
+    intPlayerX = width / 2;
+    intPlayerY = height - 45;
+
+    // Reset enemy positions
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      intEnemyX[i] = (int) random(width);
+      intEnemyY[i] = (int) random(-height, -20);
+    }
+
+    // Reset any projectiles
+    fltProjectileX.clear();
+    fltProjectileY.clear();
+
+    // Reset player speed
+    intPlayerSpeed = 4;
+
+    // Update leaderboard
+    leaderboardUpdater(intEnemiesDestroyed);
+
+    // If enter pressed go to difficulty selection
+    if (boolEnterPressed) {
+      intGameState = 5;
+      boolHardGameplay = false;
+      boolEasyGameplay = false;
+    }
+
+    // Reset enemies destroyed
+    intEnemiesDestroyed = 0;
+  }
+
+  /**
+   * Pause screen code
+   */
+  public void paused() {
+    image(imgAstralWarPause, 0, 0);
+    
+    if (boolEnterPressed && boolEasyGameplay) {
+      intGameState = 1;
+    } else if (boolEnterPressed && boolHardGameplay) {
+      intGameState = 4;
+    }
+  }
+
+  /**
+   * Updates the score for the leaderboard
+   * @param intScore The score from the previous game
+   */
+  public void leaderboardUpdater(int intScore) {
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      if (intScore > intLeaderboardScores[i]) {
+        for (int j = intMaxLeaderboardDisplay - 1; j > i; j--) {
+          intLeaderboardScores[j] = intLeaderboardScores[j - 1];
+        }
+        intLeaderboardScores[i] = intScore;
+        break;
+      }
+    }
+  }
+
+  /**
+   * Displays the leaderboard
+   */
+  public void leaderboardDisplayer() {
+    fill(255);
+    textAlign(LEFT);
+    textSize(20);
+    text("Leaderboard: ", 10, 30);
+
+    for (int i = 0; i < intMaxLeaderboardDisplay; i++) {
+      text(i + 1 + ". " + intLeaderboardScores[i], 20, 60 + i * 30);
+    }
+  }
+
+  /**
+   * Compilation of projectile code
+   */
+  public void shootProjectile() {
+    for (int i = 0; i < fltProjectileX.size(); i++) {
+      moveProjectile(i);
+      displayProjectile(i);
+      checkCollision(i);
+    }
+  }
+
+  /**
+   * Contains the code for projectile movement
+   * @param lst The index of the specific projectile
+   */
+  public void moveProjectile(int lst) {
+    float newX = fltProjectileX.get(lst);
+    float newY = fltProjectileY.get(lst) - 7;
+    fltProjectileX.set(lst, newX);
+    fltProjectileY.set(lst, newY);
+  }
+
+  /**
+   * The code for displaying the projectile
+   * @param lst The index of the specific projectile
+   */
+  public void displayProjectile(int lst) {
+    image(imgProjectile, fltProjectileX.get(lst) - 15, fltProjectileY.get(lst) - 10);
+  }
+
+  /**
+   * Checks for collision between player and enemy or enemy and projectile
+   * @param lst The index of the specific projectile
+   */
+  public void checkCollision(int lst) {
+    // Collision between player and enemy
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      if (dist(intPlayerX, intPlayerY, intEnemyX[i], intEnemyY[i]) < 20 / 2 + 20 / 2) {
+        for (int j = i; j < intEnemyMaxCount - 1; j++) {
+          intEnemyX[j] = intEnemyX[j + 1];
+          intEnemyY[j] = intEnemyY[j + 1];
+        }
+        intEnemyX[intEnemyMaxCount - 1] = (int) random(width);
+        intEnemyY[intEnemyMaxCount - 1] = (int) random(-height, -20);
+        intGameState = 3;
+      }
+    }
+
+    // Collision between enemy and projectile
+  try {
+    for (int i = 0; i < intEnemyMaxCount; i++) {
+      float d = dist(fltProjectileX.get(lst), fltProjectileY.get(lst), intEnemyX[i], intEnemyY[i]);
+      if (d < 10 / 2 + 20 / 2) {
+        fltProjectileX.remove(lst);
+        fltProjectileY.remove(lst);
+        intEnemyX[i] = (int) random(width);
+        intEnemyY[i] = (int) random(-height, -20);
+        intEnemiesDestroyed += 1;
+      }
+    }} catch (Exception e){
+
+    }
+  }
+
+  /**
+   * Checks if various keys are pressed
+   */
+  public void keyPressed() {
+    if (keyCode == LEFT) {
+      boolLeftPressed = true;
+    } else if (keyCode == RIGHT) {
+      boolRightPressed = true;
+    } else if (keyCode == 32) {
+      boolSpaceBarPressed = true;
+      fltProjectileX.add((float) intPlayerX);
+      fltProjectileY.add((float) intPlayerY);
+    } else if (keyCode == 10) {
+      boolEnterPressed = true;
+    } else if (keyCode == 9) {
+      boolTabPressed = true;
+    } else if (keyCode == 'S') {
+      boolSPressed = true;
+    } else if (keyCode == 'D') {
+      boolDPressed = true;
+    } else if (keyCode == 'E') {
+      boolEPressed = true;
+    } else if (keyCode == 'H') {
+      boolHPressed = true;
+    }
+  }
+
+  /**
+   * Checks if various keys are released
+   */
+  public void keyReleased() {
+    if (keyCode == 32) {
+      boolSpaceBarPressed = false;
+    } else if (keyCode == 10) {
+      boolEnterPressed = false;
+    } else if (keyCode == RIGHT) {
+      boolRightPressed = false;
+    } else if (keyCode == LEFT) {
+      boolLeftPressed = false;
+    } else if (keyCode == 9) {
+      boolTabPressed = false;
+    } else if (keyCode == 'S') {
+      boolSPressed = false;
+    } else if (keyCode == 'D') {
+      boolDPressed = false;
+    } else if (keyCode == 'E') {
+      boolEPressed = false;
+    } else if (keyCode == 'H') {
+      boolHPressed = false;
+    }
+  }
 }
